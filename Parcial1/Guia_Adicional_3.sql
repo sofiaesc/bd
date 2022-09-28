@@ -31,11 +31,11 @@ ALTER TABLE localidad -- agrego id
 ALTER TABLE localidad -- cambio nombre de la pk heredada
 	rename codigo_provincia TO id_provincia;
 ALTER TABLE localidad -- actualizo la primary key
-	add constraint pk_localidad primary key (id,id_provincia);
-ALTER TABLE localidad -- seteo la clave alternativa
-	add constraint uk_localidad UNIQUE (codigo_localidad);
+	add constraint pk_localidad primary key (id);
 ALTER TABLE localidad -- agrego foreign key
 	add constraint fk_localidad_references_provincia foreign key (id_provincia) references provincia(id);
+ALTER TABLE localidad -- seteo la clave alternativa
+	add constraint uk_localidad UNIQUE (id_provincia,codigo_localidad);
 
 ALTER TABLE persona -- agrego id
 	add column id 	int 	not null;
@@ -48,5 +48,5 @@ ALTER TABLE persona -- actualizo la primary key
 ALTER TABLE persona -- agrego clave alternativa
 	add constraint uk_persona UNIQUE (tipoDocumento,numeroDocumento);
 ALTER TABLE persona -- agrego nueva foreign key con ids
-	add constraint fk_persona_references_localidad foreign key (id_localidad,id_provincia) references localidad(id,id_provincia);
+	add constraint fk_persona_references_localidad foreign key (id_provincia,id_localidad) references localidad(id_provincia,id);
 	

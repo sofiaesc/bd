@@ -27,10 +27,12 @@ create table localidad (
 	id_provincia		smallint	not null,
 	codigo_localidad	smallint	not null,
 	nombre			char(60)	not null,
-	constraint pk_localidad primary key (id,id_provincia),
-	constraint uk_localidad UNIQUE (codigo_localidad),
+	constraint pk_localidad primary key (id),
+	constraint uk_localidad UNIQUE (id_provincia, codigo_localidad),
 	constraint fk_localidad_references_provincia foreign key (id_provincia) references provincia(id)
 );
+
+create index idx_localidad_provincia on localidad (id_provincia);
 
 /*==============================================================*/
 /* 			    NIVEL 3                             */
@@ -51,5 +53,7 @@ create table persona (
 	observaciones		varchar,
 	constraint pk_persona primary key (id),
 	constraint uk_persona UNIQUE (tipoDocumento,numeroDocumento),
-	constraint fk_persona_references_localidad foreign key (id_localidad,id_provincia) references localidad (id,id_provincia)
+	constraint fk_persona_references_localidad foreign key (id_provincia,id_localidad) references localidad (id_provincia,id)
 );
+
+create index idx_persona_localidad on persona (id_provincia,id_localidad);
