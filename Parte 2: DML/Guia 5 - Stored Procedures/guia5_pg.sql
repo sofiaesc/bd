@@ -24,24 +24,45 @@ SELECT obtenerPrecio('BU1032')
 -------------------- EJERCICIO 2 --------------------
 -----------------------------------------------------
 
-/*
-CREATE OR REPLACE FUNCTION obtenerFecha
+/* -- SALIDA POR TABLA
+CREATE FUNCTION obtenerFecha
 	(
-	IN prmStor_id VARCHAR(4),
-	IN prmOrd_num VARCHAR(20)
+	prmstor_id	char(4),
+	prmord_num	varchar(4)
 	)
-	
 	RETURNS setof date
 	LANGUAGE plpgsql
 	AS
 	$$
+	DECLARE
 	BEGIN
-		return QUERY SELECT ord_date FROM sales S
-			WHERE S.stor_id = prmStor_id AND S.ord_num = prmOrd_num;
+		RETURN QUERY
+			SELECT DISTINCT ord_date from sales 
+			WHERE sales.stor_id = prmstor_id AND sales.ord_num = prmord_num;
+
 	END
 	$$;
 
-SELECT obtenerFecha('7067','P2121')
+SELECT obtenerFecha ('7067', 'P2121');
+
+-- SALIDA POR MENSAJE
+create function obtenerFecha2
+	(
+	prmStor_id	char(4),
+	prmOrd_num	varchar(20)
+	)
+	RETURNS void
+	language plpgsql
+	AS
+	$$
+	DECLARE fecha sales.ord_date%TYPE;
+	BEGIN
+		SELECT ord_date INTO fecha FROM sales WHERE stor_id = prmStor_id AND ord_num = prmOrd_num;
+
+		RAISE NOTICE 'La fecha es %', fecha;
+	END
+	$$;
+SELECT obtenerFecha2 ('7067', 'P2121');
 */
 
 -----------------------------------------------------
