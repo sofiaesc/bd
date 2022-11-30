@@ -145,6 +145,85 @@ INSERT ProvComp
 INSERT ProvComp
 	VALUES(202,1)
 
-SELECT P.razonSocial FROM proveedor P
+SELECT P.razonSocial FROM proveedor P -- versión sin inner join y con where
 	WHERE (SELECT COUNT(*) FROM ProvComp PC WHERE PC.idProv = 200) <= 
 			(SELECT COUNT(*) FROM ProvComp PC2 WHERE PC2.idProv = P.idProv) AND P.idProv != 200
+
+----------------------------------------------------------------------------------------------------------
+-- Dado el siguiente modelo de datos, obtener los nombres y apellidos de los proveedores que proveen todos
+-- los productos de la lista Producto.
+
+CREATE TABLE Proveedor
+	(
+	idProveedor int not null,
+	apeNom	varchar(30),
+	domicilio	varchar(50),
+	telefono	varchar(20)
+	constraint pk_proveedor primary key (idProveedor)
+	)
+	
+CREATE TABLE Producto
+	(
+	idProducto int not null,
+	descripcion varchar(50),
+	precio float,
+	constraint pk_producto primary key (idProducto)
+	)
+	
+CREATE TABLE ProvProd
+	(
+	idProveedor int not null,
+	idProducto int not null,
+	constraint pk_provprod primary key (idProveedor, idProducto),
+	constraint fk_provprod_references_proveedor foreign key (idProveedor) references Proveedor (idProveedor),
+	constraint fk_provprod_references_producto foreign key (idProducto) references Producto (idProducto)
+	)
+
+INSERT INTO Proveedor VALUES (1, 'Acosta Juan','Bv Galvez 2000','4488993')
+INSERT INTO Proveedor VALUES (2, 'Villalba Ignacio','Av. Gral Paz 5900','4562105')
+INSERT INTO Proveedor VALUES (3, 'Maderos Juan','Saavedra 2100','4332041')
+
+INSERT INTO Producto VALUES (1,'Resma A4 80G',200)
+INSERT INTO Producto VALUES (2,'Mouse Optical Genius',50)
+
+INSERT INTO ProvProd VALUES (1,1)
+INSERT INTO ProvProd VALUES (1,2)
+INSERT INTO ProvProd VALUES (2,1)
+INSERT INTO ProvProd VALUES (3,2)
+
+SELECT Prov.apeNom FROM ProvProd PP INNER JOIN Proveedor Prov -- versión con inner join y having
+										ON PP.idProveedor = Prov.idProveedor
+					GROUP BY apeNom
+					HAVING COUNT(PP.idProveedor) = (SELECT COUNT(Prod2.idProducto) FROM Producto Prod2)
+
+----------------------------------------------------------------------------------------------------------
+-- Generar una tabla que liste los diferentes años en los que se produjeron ventas junto al mes en que se
+-- vendió la mayor cantidad de publicaciones:
+
+create table MesMaximasVentas
+	(
+	anio	int		not null,
+	mes		int		not null
+	)
+	
+DECLARE curAnios CURSOR
+	FOR SELECT DISTINCT YEAR(ord_date) FROM sales
+
+DECLARE @anio int,
+		@mes_max_venta int
+
+OPEN curAnios
+FETCH NEXT FROM curAnios INTO @anio
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+	set @mes_max_venta = (SELECT TOP 1 MONTH(ord_date) FROM sales
+												WHERE YEAR(ord_date) = @anio
+												GROUP BY MONTH(ord_date)
+												ORDER BY SUM(qty) DESC)
+	insert into MesMaximasVentas values (@anio,@mes_max_venta)
+	FETCH NEXT FROM curAnios INTO @anio
+END
+
+CLOSE curAnios
+DEALLOCATE curAnios
